@@ -7,21 +7,25 @@
 //
 
 #import "FISTableViewController.h"
+#import "FISDataStore.h"
+#import "Message.h"
 
 @interface FISTableViewController ()
+
+@property (nonatomic, strong) FISDataStore *dataManager;
 
 @end
 
 @implementation FISTableViewController
 
-- (id)initWithStyle:(UITableViewStyle)style
-{
-    self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
+//- (id)initWithStyle:(UITableViewStyle)style
+//{
+//    self = [super initWithStyle:style];
+//    if (self) {
+//        // Custom initialization
+//    }
+//    return self;
+//}
 
 - (void)viewDidLoad
 {
@@ -32,6 +36,31 @@
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.dataManager = [FISDataStore sharedDataStore];
+    
+    Message *message1 = [NSEntityDescription insertNewObjectForEntityForName:@"Message"
+                                                      inManagedObjectContext:self.dataManager.managedObjectContext];
+    Message *message2 = [NSEntityDescription insertNewObjectForEntityForName:@"Message"
+                                                      inManagedObjectContext:self.dataManager.managedObjectContext];
+    Message *message3 = [NSEntityDescription insertNewObjectForEntityForName:@"Message"
+                                                      inManagedObjectContext:self.dataManager.managedObjectContext];
+    message1.content = @"Hello There";
+    message2.createdAt = [NSDate date];
+    
+    message2.content = @"This is fun";
+    message2.createdAt = [NSDate date];
+    
+    message3.content = @"I'm at the Flatiron School";
+    message3.createdAt = [NSDate date];
+    
+    // Save the context
+    [self.dataManager saveContext];
+    
+    
+    // Fetch request called
+    NSFetchRequest *messageFetch = [[NSFetchRequest alloc] initWithEntityName:@"Message"];
+    self.messages = [self.dataManager.managedObjectContext executeFetchRequest:messageFetch
+                                                         error:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -44,28 +73,38 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-#warning Potentially incomplete method implementation.
     // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-#warning Incomplete method implementation.
     // Return the number of rows in the section.
-    return 0;
+    return self.messages.count;
 }
 
-/*
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:<#@"reuseIdentifier"#> forIndexPath:indexPath];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"messageCellRID" forIndexPath:indexPath];
     
     // Configure the cell...
+    Message *message = self.messages[indexPath.row];
+    cell.textLabel.text = message.content;
     
     return cell;
 }
-*/
+
+- (IBAction)sortBarButtonTapped:(id)sender
+{
+    NSSortDescriptor *sortByDate = [NSSortDescriptor sortDescriptorWithKey:@"createdAt" ascending:NO];
+    NSSortDescriptor *sortByContent = [NSSortDescriptor sortDescriptorWithKey:@"content" ascending:YES];
+    
+    // sort messages by content, then by date
+    self.messages = [self.messages sortedArrayUsingDescriptors:@[sortByContent, sortByDate]];
+    
+    // refresh the table
+    [self.tableView reloadData];
+}
 
 /*
 // Override to support conditional editing of the table view.

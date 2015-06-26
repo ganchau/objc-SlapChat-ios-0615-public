@@ -10,4 +10,6 @@
 
 @interface FISTableViewController : UITableViewController
 
+@property (nonatomic, strong) NSArray *messages;
+
 @end
